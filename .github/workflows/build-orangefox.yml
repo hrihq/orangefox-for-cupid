@@ -53,7 +53,7 @@ jobs:
           chmod +x orangefox_sync.sh
           ./orangefox_sync.sh --branch "$FOX_BRANCH" --path "$GITHUB_WORKSPACE/android"
 
-            - name: Clone device tree
+      - name: Clone device tree
         run: |
           set -e
           cd "$GITHUB_WORKSPACE/android"
@@ -65,16 +65,18 @@ jobs:
         run: |
           set -e
           cd "$GITHUB_WORKSPACE/android/$DEVICE_PATH"
-          # Remove obsolete FOX_VERSION and add FOX_MAINTAINER_PATCH_VERSION
+          # Remove obsolete FOX_VERSION variable used by older OrangeFox builds
           sed -i '/^export FOX_VERSION/d' vendorsetup.sh
+          # Set maintainer patch version required by newer OrangeFox build system
           echo 'export FOX_MAINTAINER_PATCH_VERSION=1' >> vendorsetup.sh
           echo "Patched vendorsetup.sh:"
           cat vendorsetup.sh
-- name: Patch device tree for OrangeFox + OTG
+
+      - name: Patch device tree for OrangeFox + OTG
         run: |
           set -e
           cd "$GITHUB_WORKSPACE/android/$DEVICE_PATH"
-          grep -q TW_INCLUDE_OTG BoardConfig.mk 2>/dev/null || echo TW_INCLUDE_OTG\ :=\ true >> BoardConfig.mk
+          grep -q TW_INCLUDE_OTG BoardConfig.mk 2>/dev/null || echo TW_INCLUDE_OTG:=true >> BoardConfig.mk
           echo "=== BoardConfig.mk tail ==="
           tail -5 BoardConfig.mk
 
