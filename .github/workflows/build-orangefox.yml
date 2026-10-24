@@ -69,16 +69,6 @@ jobs:
           echo "=== BoardConfig.mk tail ==="
           tail -5 BoardConfig.mk
 
-      - name: Patch device tree vendorsetup.sh
-        run: |
-          set -e
-          cd "$GITHUB_WORKSPACE/android/$DEVICE_PATH"
-          # Remove obsolete FOX_VERSION and add FOX_MAINTAINER_PATCH_VERSION
-          sed -i '/^export FOX_VERSION/d' vendorsetup.sh
-          echo 'export FOX_MAINTAINER_PATCH_VERSION=1' >> vendorsetup.sh
-          echo "Patched vendorsetup.sh:"
-          cat vendorsetup.sh
-
       - name: Validate build environment
         run: |
           set -e
@@ -100,6 +90,10 @@ jobs:
           export LC_ALL=C
           export USE_CCACHE=1
           export CCACHE_EXEC=/usr/bin/ccache
+          export CCACHE_DIR="$RUNNER_TEMP/ccache"
+          export CCACHE_TEMPDIR="$RUNNER_TEMP/ccache/tmp"
+          mkdir -p "$CCACHE_DIR"
+          chmod 777 "$CCACHE_DIR"
           ccache -M 8G
 
           # OrangeFox envsetup.sh uses unbound vars — must disable -u
