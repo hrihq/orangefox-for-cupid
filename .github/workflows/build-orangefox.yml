@@ -92,9 +92,11 @@ jobs:
           export CCACHE_EXEC=/usr/bin/ccache
           ccache -M 8G
 
+          # OrangeFox envsetup.sh uses unbound vars — must disable -u
           set +eu
           source build/envsetup.sh
-          set -eu
+          # restore pipefail only
+          set -eo pipefail
 
           declare -F lunch >/dev/null 2>&1 || { echo "::error::lunch not loaded"; exit 1; }
 
