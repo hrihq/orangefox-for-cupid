@@ -53,8 +53,15 @@ jobs:
           chmod +x orangefox_sync.sh
           ./orangefox_sync.sh --branch "$FOX_BRANCH" --path "$GITHUB_WORKSPACE/android"
 
-      - name: Clone device tree
-      - name: Patch device tree vendorsetup.sh
+            - name: Clone device tree
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE/android"
+          git clone --depth=1 -b "$DEVICE_BRANCH" "$DEVICE_REPO" "$DEVICE_PATH"
+          echo "=== Device tree files ==="
+          ls -la "$DEVICE_PATH/"
+
+      - name: Fix OrangeFox vendor setup
         run: |
           set -e
           cd "$GITHUB_WORKSPACE/android/$DEVICE_PATH"
@@ -63,15 +70,7 @@ jobs:
           echo 'export FOX_MAINTAINER_PATCH_VERSION=1' >> vendorsetup.sh
           echo "Patched vendorsetup.sh:"
           cat vendorsetup.sh
-
-        run: |
-          set -e
-          cd "$GITHUB_WORKSPACE/android"
-          git clone --depth=1 -b "$DEVICE_BRANCH" "$DEVICE_REPO" "$DEVICE_PATH"
-          echo "=== Device tree files ==="
-          ls -la "$DEVICE_PATH/"
-
-      - name: Patch device tree for OrangeFox + OTG
+- name: Patch device tree for OrangeFox + OTG
         run: |
           set -e
           cd "$GITHUB_WORKSPACE/android/$DEVICE_PATH"
