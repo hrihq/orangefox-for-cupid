@@ -202,27 +202,30 @@ jobs:
         run: |
           set -e
           cd "$GITHUB_WORKSPACE/android"
-          PRODUCT_MK="$DEVICE_PATH/twrp_cupid.mk"
+          PRODUCT_MK="$DEVICE_PATH/orangefox_cupid.mk"
           PRODUCTS_FILE="$DEVICE_PATH/AndroidProducts.mk"
-          cat > "$PRODUCT_MK" <<'EOF'
-          #
-          # OrangeFox Recovery product for Xiaomi 12 (cupid)
-          #
-          PRODUCT_RELEASE_NAME := cupid
-          DEVICE_PATH := device/xiaomi/cupid
-          $(call inherit-product, $(DEVICE_PATH)/device.mk)
-          $(call inherit-product-if-exists, $(DEVICE_PATH)/fox_cupid.mk)
-          $(call inherit-product, vendor/twrp/config/common.mk)
-          PRODUCT_NAME := orangefox_cupid
-          PRODUCT_DEVICE := cupid
-          PRODUCT_BRAND := Xiaomi
-          PRODUCT_MODEL := Xiaomi 12
-          PRODUCT_MANUFACTURER := Xiaomi
-          EOF
+          # Write orangefox_cupid.mk using printf to avoid YAML conflicts
+          printf '%s\n' \
+            '# OrangeFox Recovery product for Xiaomi 12 (cupid)' \
+            'PRODUCT_RELEASE_NAME := cupid' \
+            'DEVICE_PATH := device/xiaomi/cupid' \
+            '$(call inherit-product, $(DEVICE_PATH)/device.mk)' \
+            '$(call inherit-product, vendor/twrp/config/common.mk)' \
+            'PRODUCT_NAME := orangefox_cupid' \
+            'PRODUCT_DEVICE := cupid' \
+            'PRODUCT_BRAND := Xiaomi' \
+            'PRODUCT_MODEL := Xiaomi 12' \
+            'PRODUCT_MANUFACTURER := Xiaomi' \
+            'TW_INCLUDE_OTG := true' \
+            > "$PRODUCT_MK"
           touch "$PRODUCTS_FILE"
           if ! grep -q 'orangefox_cupid.mk' "$PRODUCTS_FILE"; then
             printf '\nPRODUCT_MAKEFILES += \\\n    $(LOCAL_DIR)/orangefox_cupid.mk\n' >> "$PRODUCTS_FILE"
           fi
+          echo "=== AndroidProducts.mk after patch ==="
+          cat "$PRODUCTS_FILE"
+          echo "=== orangefox_cupid.mk ==="
+          cat "$PRODUCT_MK"
 
       - name: Build recovery image
         shell: bash
