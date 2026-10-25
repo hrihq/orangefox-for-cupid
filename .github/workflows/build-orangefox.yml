@@ -134,3 +134,4 @@ jobs:
           path: android/out/target/product/cupid/recovery.img
           if-no-files-found: error
           retention-days: 30
+# OTG fix applied (TW_INCLUDE_OTG := true) - trigger build via github action
