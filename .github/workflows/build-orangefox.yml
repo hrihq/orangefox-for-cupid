@@ -103,10 +103,13 @@ jobs:
               sed -i '/qti_battery_charger\.ko/a qti_battery_charger_main_m81.ko' modules.load.recovery
           fi
 
-          # --- OTG: enable USB host + auto filesystem for flash drives ---
+          # --- OTG: enable USB host + correct block nodes (GKI enumerates as sda) ---
           grep -q 'persist.sys.isUsbOtgEnabled' system.prop || \
             echo 'persist.sys.isUsbOtgEnabled=true' >> system.prop
-          sed -i 's|^/usbstorage[[:space:]]\+vfat|/usbstorage     auto|' recovery/root/system/etc/twrp.flags || true
+          sed -i -e 's|/usbstorage[[:space:]]\+vfat|/usbstorage     auto|' \
+                 -e 's|/dev/block/sdh1|/dev/block/sda1|g' \
+                 -e 's|/dev/block/sdh\([[:space:]]\)|/dev/block/sda\1|g' \
+                 recovery/root/system/etc/twrp.flags
 
           echo "=== BoardConfig tail ==="; tail -3 BoardConfig.mk
           echo "=== system.prop ==="; cat system.prop
