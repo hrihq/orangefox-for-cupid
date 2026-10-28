@@ -103,18 +103,27 @@ jobs:
               sed -i '/qti_battery_charger\.ko/a qti_battery_charger_main_m81.ko' modules.load.recovery
           fi
 
-          # --- OTG: enable USB host + correct block nodes (GKI enumerates as sda) ---
+          # --- OTG: OrangeFox disables USB storage by default (orangefox.mk -> TW_NO_USB_STORAGE) ---
+          grep -q 'OF_ENABLE_USB_STORAGE' BoardConfig.mk || \
+            echo 'OF_ENABLE_USB_STORAGE := 1' >> BoardConfig.mk
+
+          # --- OTG: enable USB host mode ---
           grep -q 'persist.sys.isUsbOtgEnabled' system.prop || \
             echo 'persist.sys.isUsbOtgEnabled=true' >> system.prop
-          sed -i -e 's|/usbstorage[[:space:]]\+vfat|/usbstorage     auto|' \
-                 -e 's|/dev/block/sdh1|/dev/block/sda1|g' \
-                 -e 's|/dev/block/sdh\([[:space:]]\)|/dev/block/sda\1|g' \
-                 recovery/root/system/etc/twrp.flags
+
+          # --- OTG: real block device is /dev/block/sdg (UFS internal = sda..sdf) ---
+          USB_LINE='/usbstorage     auto    /dev/block/sdg1                                 /dev/block/sdg      flags=fsflags=utf8;display="USB Storage";storage;wipeingui;removable'
+          FLAGS=recovery/root/system/etc/twrp.flags
+          if grep -q '^/usbstorage' "$FLAGS"; then
+            sed -i "s|^/usbstorage.*|$USB_LINE|" "$FLAGS"
+          else
+            echo "$USB_LINE" >> "$FLAGS"
+          fi
 
           echo "=== BoardConfig tail ==="; tail -3 BoardConfig.mk
           echo "=== system.prop ==="; cat system.prop
           echo "=== modules (charger) ==="; grep -i charger modules.load.recovery || true
-          echo "=== twrp.flags usbstorage ==="; grep usbstorage recovery/root/system/etc/twrp.flags || true
+          echo "=== twrp.flags usbstorage ==="; grep usbstorage "$FLAGS" || true
 
       - name: Validate build environment
         run: |
